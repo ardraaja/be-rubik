@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
-// Kredensial Database Terpusat MariaDB Asisten
+// Kredensial Database Terpusat MariaDB Asisten Resmi
 const dbHost = '34.101.108.193'; 
 const myNIM = '2311523016';
 const myDB = `db_${myNIM}`;
@@ -65,7 +65,7 @@ function initializeDatabase() {
 
 initializeDatabase();
 
-// Hubungkan Pool Aplikasi Utama Menggunakan User NIM Anda
+// Hubungkan Pool Utama Aplikasi
 const pool = mysql.createPool({
     host: dbHost,
     user: myUser,
@@ -77,27 +77,38 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// 1. ENDPOINT /health
+// 1. ENDPOINT /health (Kunci Perbaikan: Sesuai Struktur Halaman 4 Instruksi)
 app.get('/health', (req, res) => {
     pool.getConnection((err, connection) => {
         if (err) {
             return res.status(500).json({
                 status: "error",
+                message: "Backend is running, but database is not connected",
                 database: "disconnected",
-                error_message: err.message,
-                owner: { nama: "Muhammad Ardra Pramana AS", nim: myNIM }
+                student: { name: "Muhammad Ardra Pramana AS", nim: myNIM }
             });
         }
         connection.release();
         res.json({
             status: "success",
+            message: "Backend is running",
             database: "connected",
-            owner: { nama: "Muhammad Ardra Pramana AS", nim: myNIM }
+            student: { name: "Muhammad Ardra Pramana AS", nim: myNIM }
         });
     });
 });
 
-// 2. ENDPOINT /schema (DIUBAH TOTAL 100% SESUAI DENGAN FORMAT DOKUMEN ASISTEN)
+app.get('/', (req, res) => {
+    res.json({
+        status: "success",
+        message: "Backend Rubik API is running successfully",
+        student: {
+            name: "Muhammad Ardra Pramana AS",
+            nim: "2311523016"
+        }
+    });
+});
+// 2. ENDPOINT /schema (Sesuai Struktur Halaman 5 Instruksi)
 app.get('/schema', (req, res) => {
     res.json({
         "student": {
@@ -126,31 +137,36 @@ app.get('/schema', (req, res) => {
     });
 });
 
-// --- IMPLEMENTASI ROUTE CRUD MENGGUNAKAN PATH /items SESUAI INSTRUKSI ---
+// --- IMPLEMENTASI ROUTE CRUD PATH /items DENGAN MESSAGE RESMI ASISTEN ---
 
-// 3. GET ALL DATA ITEMS
+// 3. GET ALL ITEMS
 app.get('/items', (req, res) => {
     pool.query('SELECT * FROM rubiks', (err, results) => {
         if (err) return res.status(500).json({ status: "error", message: err.message });
-        
-        // Map data agar boolean formatnya ramah untuk komponen checkbox frontend
         const formattedData = results.map(row => ({
             ...row,
             is_magnetic: row.is_magnetic === 1
         }));
-        res.json({ status: "success", data: formattedData });
+        res.json({ 
+            status: "success", 
+            message: "Data retrieved successfully",
+            data: formattedData 
+        });
     });
 });
 
-// 4. GET SINGLE ITEM BY ID
+// 4. GET SINGLE ITEM
 app.get('/items/:id', (req, res) => {
     pool.query('SELECT * FROM rubiks WHERE id = ?', [req.params.id], (err, results) => {
         if (err) return res.status(500).json({ status: "error", message: err.message });
         if (results.length === 0) return res.status(404).json({ status: "error", message: "Item tidak ditemukan" });
-        
         const row = results[0];
         row.is_magnetic = row.is_magnetic === 1;
-        res.json({ status: "success", data: row });
+        res.json({ 
+            status: "success", 
+            message: "Data retrieved successfully",
+            data: row 
+        });
     });
 });
 
@@ -162,7 +178,11 @@ app.post('/items', (req, res) => {
     pool.query('INSERT INTO rubiks (nama, merek, ukuran, harga, is_magnetic) VALUES (?, ?, ?, ?, ?)',
     [nama, merek, ukuran, parseInt(harga), magneticVal], (err, results) => {
         if (err) return res.status(500).json({ status: "error", message: err.message });
-        res.status(201).json({ status: "success", data: { id: results.insertId, ...req.body } });
+        res.status(201).json({ 
+            status: "success", 
+            message: "Data created successfully",
+            data: { id: results.insertId, nama, merek, ukuran, harga: parseInt(harga), is_magnetic: !!is_magnetic } 
+        });
     });
 });
 
@@ -170,11 +190,16 @@ app.post('/items', (req, res) => {
 app.put('/items/:id', (req, res) => {
     const { nama, merek, ukuran, harga, is_magnetic } = req.body;
     const magneticVal = is_magnetic ? 1 : 0;
+    const itemId = parseInt(req.params.id);
     
     pool.query('UPDATE rubiks SET nama=?, merek=?, ukuran=?, harga=?, is_magnetic=? WHERE id=?',
-    [nama, merek, ukuran, parseInt(harga), magneticVal, req.params.id], (err, results) => {
+    [nama, merek, ukuran, parseInt(harga), magneticVal, itemId], (err, results) => {
         if (err) return res.status(500).json({ status: "error", message: err.message });
-        res.json({ status: "success" });
+        res.json({ 
+            status: "success", 
+            message: "Data updated successfully",
+            data: { id: itemId, nama, merek, ukuran, harga: parseInt(harga), is_magnetic: !!is_magnetic }
+        });
     });
 });
 
@@ -182,7 +207,10 @@ app.put('/items/:id', (req, res) => {
 app.delete('/items/:id', (req, res) => {
     pool.query('DELETE FROM rubiks WHERE id = ?', [req.params.id], (err) => {
         if (err) return res.status(500).json({ status: "error", message: err.message });
-        res.json({ status: "success" });
+        res.json({ 
+            status: "success", 
+            message: "Data deleted successfully" 
+        });
     });
 });
 
