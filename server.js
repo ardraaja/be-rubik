@@ -8,7 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 // Kredensial Database Terpusat MariaDB Asisten
-const dbHost = '34.50.74.33'; 
+const dbHost = '34.101.108.193'; 
 const myNIM = '2311523016';
 const myDB = `db_${myNIM}`;
 const myUser = `user_${myNIM}`;
